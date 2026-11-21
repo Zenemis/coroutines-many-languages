@@ -1,6 +1,8 @@
-# Protocole adaptateur ↔ lanceur — v0 (proposition)
+# Protocole adaptateur ↔ lanceur — v1
 
-> **Statut : proposition à valider.** Le protocole couvre A1 et A2. A3 (symétrique) est laissée pour plus tard.
+> **Statut : adopté.** Le protocole couvre A1 et A2. A3 (symétrique) est laissée pour plus tard.
+>
+> **Sémantique de référence : `std::ops::Coroutine` de Rust.** Quand un comportement est ambigu, on fait comme lui (seulement le comportement, pas la syntaxe).
 
 ## Principe
 
@@ -8,24 +10,26 @@
 - L'adaptateur exécute les commandes dans l'ordre et écrit **une ligne par événement** sur stdout.
 - Le lanceur compare la sortie complète, ligne par ligne, avec les lignes `<` attendues.
 - Tout est déterministe : pas besoin d'aller-retour interactif.
-- L'adaptateur termine avec le code de sortie 0, même si des erreurs `error …` ont été émises, puisque ces erreurs font partie du comportement testé. Un code différent de 0 (un `panic`, une segfault…) fait échouer le test.
+- L'adaptateur termine avec le code de sortie 0, même si des événements `panic` ou `error …` ont été émis, puisqu'ils font partie du comportement testé. Un code différent de 0 (un `panic` non rattrapé, une segfault…) fait échouer le test.
 
 ## Lexique
 
 - **Jeton** : une suite de caractères sans espace. Les valeurs sont des jetons, par exemple `0`, `-3` ou `bonjour`.
 - **Nom** : l'identifiant d'une instance, choisi par le scénario (`c`, `a`, `b`…).
-- **Corps** : le nom d'une coroutine du catalogue commun (voir `CATALOGUE.md`, à écrire).
+- **Corps** : le nom d'une coroutine du catalogue commun (voir [`CATALOGUE.md`](CATALOGUE.md)).
 
 ## Commandes (stdin)
 
 | Commande | Sens |
 |---|---|
 | `new <corps> [arg…] as <nom>` | Crée une instance du corps avec ses arguments, sans l'exécuter. |
-| `resume <nom>` | Reprend l'instance sans lui envoyer de valeur (A1). |
-| `resume <nom> <valeur>` | Reprend l'instance en lui envoyant une valeur (A2). |
+| `resume <nom>` | Reprend l'instance sans lui envoyer de valeur (corps A1). |
+| `resume <nom> <valeur>` | Reprend l'instance en lui envoyant une valeur (corps A2). |
 | `drop <nom>` | Abandonne l'instance. Le nom n'est plus valide ensuite. |
 
-Une commande ne produit une sortie que si **quelque chose se passe**. `new` et `drop` sont donc silencieuses, sauf si le corps a des effets (voir `print`).
+Une commande ne produit une sortie que si **quelque chose se passe**. `new` est toujours silencieuse. `drop` l'est aussi, sauf si l'abandon déclenche un effet du corps (voir plus bas).
+
+Mélanger les formes (`resume` sans valeur sur un corps A2, ou l'inverse) n'est pas défini, et aucun scénario ne le fait.
 
 ## Événements (stdout)
 
@@ -34,10 +38,17 @@ Une commande ne produit une sortie que si **quelque chose se passe**. `new` et `
 | `yield <valeur>` | L'instance s'est suspendue en produisant une valeur. |
 | `return [valeur]` | L'instance est terminée, avec ou sans valeur finale. |
 | `print <texte…>` | Effet de bord du corps, par exemple « Cuisinier : je fais cuire ». Le texte va jusqu'à la fin de la ligne et peut contenir des espaces. |
-| `error finished` | On a repris une instance déjà terminée. C'est **l'erreur dédiée**. |
+| `panic` | La reprise a paniqué. C'est le cas quand on reprend une instance **déjà terminée**, comme `std::ops::Coroutine`. L'adaptateur doit rattraper le panic (en Rust : `std::panic::catch_unwind`, avec un hook de panic silencieux) et émettre cette ligne. |
 | `error unknown <nom>` | Le nom ne correspond à aucune instance vivante : jamais créée, ou déjà abandonnée. Erreur du protocole, pas de la coroutine. |
 
 Les `print` d'un corps apparaissent **avant** l'événement `yield` ou `return` de la même reprise, dans l'ordre où ils ont eu lieu.
+
+## Sémantique attendue (alignée sur `std::ops::Coroutine`)
+
+- **Démarrage paresseux.** `new` n'exécute rien du corps. Le corps démarre au premier `resume`.
+- **Reprise après la fin.** Elle panique, et chaque nouvelle reprise panique à nouveau.
+- **Première valeur de reprise (A2).** La valeur du **premier** `resume` n'est pas perdue : le corps la reçoit comme paramètre de départ (en Rust, c'est l'argument de la closure). Les valeurs suivantes sont le résultat de chaque `yield`. C'est différent de Python, où le premier `send` doit valoir `None`.
+- **Abandon.** `drop` détruit les variables encore vivantes du corps, donc leurs destructeurs s'exécutent (`Drop` en Rust). Une instance pas encore démarrée, ou déjà terminée, n'a plus de variable vivante : son abandon ne produit rien.
 
 ## Format d'un fichier de scénario
 

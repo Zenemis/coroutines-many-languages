@@ -1,0 +1,10 @@
+# Reprendre un nom jamais créé est une erreur du protocole
+# Ce n'est pas un comportement de coroutine, mais l'adaptateur doit le
+# signaler proprement et continuer avec les commandes suivantes.
+
+> resume fantome
+< error unknown fantome
+> new feu 0 as f
+> resume f
+< print allumage
+< return eteint

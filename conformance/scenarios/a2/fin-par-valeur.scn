@@ -1,0 +1,11 @@
+# Une valeur reçue peut terminer la coroutine
+# Recevoir « stop » termine l'echo avec sa valeur finale. Comme en A1, toute
+# reprise suivante panique, même avec une valeur.
+
+> new echo as e
+> resume e a
+< yield a
+> resume e stop
+< return fini
+> resume e b
+< panic

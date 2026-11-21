@@ -1,0 +1,13 @@
+# Une coroutine peut se terminer sans valeur finale
+# La tâche fait ses deux étapes, puis la reprise suivante la termine
+# sans valeur : on attend un « return » nu.
+
+> new tache t 2 as t
+> resume t
+< print t etape 1
+< yield 1
+> resume t
+< print t etape 2
+< yield 2
+> resume t
+< return

@@ -1,0 +1,8 @@
+# Abandonner une coroutine pas encore démarrée n'exécute rien
+# Le corps n'a jamais démarré : la ressource n'a pas été prise, donc il n'y a
+# rien à libérer. Ni « debut » ni « liberation » ne doivent apparaître.
+
+> new ressource as r
+> drop r
+> resume r
+< error unknown r

@@ -1,55 +1,58 @@
 # Tests de conformité (indépendants du langage)
 
-> **Statut : l'approche par adaptateur est adoptée.** Le protocole détaillé (proposition v0) est dans [`PROTOCOLE.md`](PROTOCOLE.md).
+Ces tests vérifient qu'une implémentation, quel que soit son langage, se comporte comme une coroutine au sens de **`std::ops::Coroutine` de Rust**, qui sert de sémantique de référence. Ils complètent les tests de chaque langage, sans les remplacer.
 
-Ces tests vérifient qu'une implémentation, quel que soit son langage, se comporte comme une coroutine selon le sens défini ici. Ils complètent les tests unitaires de chaque langage, sans les remplacer.
+## Deux niveaux de test
 
-## Le problème
+| Niveau | Oracle | Ce qu'il attrape | Où |
+|---|---|---|---|
+| **Conformité** (indépendant du langage) | Les lignes `<` des scénarios, c'est-à-dire la spécification écrite une fois | Les écarts de sémantique : démarrage paresseux, panic après la fin, première valeur de reprise, libération à l'abandon… | Ici |
+| **Différentiel** (dans un langage) | Une seconde version des mêmes corps, écrite avec la lib standard du langage | Les bugs de mécanique qu'une traduction de corps pourrait masquer | Dans chaque implémentation |
 
-L'API d'une coroutine ne peut pas être la même partout. En Rust ce sera un `enum` ou un trait, en C une `struct` avec des macros, en Kotlin autre chose encore. On ne peut donc pas écrire un seul test qui appelle directement le code de chaque langage, sauf à passer par une FFI, ce qui serait pénible et fragile.
+**Limite connue de la conformité.** Le corps et l'adaptateur sont réécrits dans chaque langage, et rien ne vérifie automatiquement que cette traduction est fidèle à [`CATALOGUE.md`](CATALOGUE.md). C'est pour ça que les corps doivent rester triviaux, et que le niveau différentiel existe. Aucun de ces deux niveaux n'empêche de tricher : ils protègent contre les erreurs, pas contre la mauvaise foi.
 
-## L'idée : un adaptateur à la frontière du processus
+## Comment ça marche
 
-L'adaptateur n'est pas une couche de code, c'est un **petit programme**. Chaque langage fournit un exécutable qui :
+L'API d'une coroutine ne peut pas être la même dans tous les langages. On ne teste donc pas le code directement, mais un **petit programme**, l'adaptateur, que chaque langage fournit. Il :
 
-1. contient un **catalogue de corps de coroutines** écrits dans ce langage, avec l'implémentation maison (par exemple `compteur`, `cuisinier`, `fibonacci`…) ;
-2. lit des **commandes** sur son entrée standard (créer une instance, la reprendre, lui envoyer une valeur, l'abandonner) ;
-3. écrit sur sa sortie standard **une ligne par événement** (valeur produite, valeur finale, erreur, effet de bord).
-
-Un lanceur commun (en Python par exemple) envoie les commandes de chaque scénario et compare la sortie à celle attendue. Les scénarios sont écrits **une seule fois**, et pour chaque langage on ne réécrit que l'adaptateur.
-
-```
-scénario (.txt)  ──commandes──▶  adaptateur Rust / C / Kotlin…  ──événements──▶  lanceur : diff avec l'attendu
-```
-
-## Format envisagé d'un scénario
-
-Un fichier texte en trois parties : une description en langage naturel (la spécification), les commandes envoyées (`>`) et les lignes attendues (`<`).
+1. contient le **catalogue** des corps, écrits avec l'implémentation testée ;
+2. lit des **commandes** sur stdin (`new`, `resume`, `drop`) ;
+3. écrit **une ligne par événement** sur stdout (`yield`, `return`, `print`, `panic`, `error`).
 
 ```
-# Titre du scénario
-# Ce que ce test vérifie, et pourquoi c'est important, en français.
-
-> new compteur 2 as c
-> resume c
-< yield 0
-> resume c
-< yield 1
-> resume c
-< return done
+scénario .scn  ──commandes >──▶  adaptateur (Rust, C, Kotlin…)  ──événements──▶  lanceur : diff avec les lignes <
 ```
 
-*(Exemple purement illustratif du format, pas un scénario retenu.)*
+Le détail est dans [`PROTOCOLE.md`](PROTOCOLE.md).
 
-## Ce qui reste à décider
+Pour voir le fonctionnement à la main, sans le lanceur :
 
-- Valider le vocabulaire proposé dans [`PROTOCOLE.md`](PROTOCOLE.md).
-- La liste des corps du catalogue (`CATALOGUE.md`), qui doit être la même pour tous les langages.
-- Comment exprimer les scénarios symétriques (A3), où une coroutine en reprend une autre.
+```bash
+printf 'new feu 1 as f\nresume f\nresume f\n' | python3 conformance/reference/adapter.py
+```
+
+## L'adaptateur de référence
+
+[`reference/adapter.py`](reference/adapter.py) utilise les générateurs natifs de Python, pliés à la sémantique de `std::ops::Coroutine`. Les générateurs sont éprouvés, donc **si un scénario échoue contre la référence, c'est le scénario qui est faux**.
+
+À chaque ajout d'un corps dans `CATALOGUE.md`, il faut aussi l'ajouter à la référence.
 
 ## Organisation
 
-- `scenarios/<fonctionnalité>/` : un fichier `.scn` par scénario, par exemple `scenarios/a1/`.
+- `scenarios/a1/`, `scenarios/a2/` : un fichier `.scn` par comportement, rangés par fonctionnalité.
+- [`CATALOGUE.md`](CATALOGUE.md) : les corps communs, décrits en langage naturel et en pseudo-code.
+- [`PROTOCOLE.md`](PROTOCOLE.md) : les commandes, les événements, la sémantique attendue et la déclaration des adaptateurs.
+- `reference/` : l'adaptateur de référence en Python.
 - `runner/` : le lanceur commun (`run.py`, Python ≥ 3.10, sans dépendance) et ses auto-tests.
-- `adapters.json` : la liste des adaptateurs à lancer. Le format est décrit dans [`PROTOCOLE.md`](PROTOCOLE.md).
-- L'adaptateur de chaque langage vit à côté de l'implémentation, par exemple `rust/A-machine-a-etats/`.
+- `adapters.json` : la liste des adaptateurs à lancer.
+- L'adaptateur de chaque langage vit à côté de son implémentation, par exemple dans `rust/A-machine-a-etats/`.
+
+## Lancer
+
+```bash
+python3 conformance/runner/run.py -v
+```
+
+## Reste à faire
+
+- A3 (symétrique) : définir comment une coroutine passe la main à une autre dans le protocole.

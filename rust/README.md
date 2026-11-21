@@ -35,7 +35,11 @@ On avance du plus simple au plus riche :
 
 ### Décisions déjà prises
 
-- Reprendre une coroutine terminée renvoie une **erreur dédiée**. Ce n'est ni un `panic` ni un simple `None`.
+- **La sémantique suit `std::ops::Coroutine`**, mais pas sa syntaxe : A est une bibliothèque, pas une macro ni une extension du compilateur. Par conséquent :
+  - reprendre une coroutine terminée **panique** ;
+  - en A2, la valeur du premier `resume` est reçue par le corps comme paramètre de départ ;
+  - abandonner une coroutine suspendue détruit ses variables encore vivantes.
+- **Oracle différentiel** : en plus des tests de conformité, chaque corps du catalogue est réécrit une seconde fois avec `std::ops::Coroutine` (nightly). Les deux versions doivent produire les mêmes traces.
 
 ### Questions ouvertes
 

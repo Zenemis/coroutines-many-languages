@@ -1,0 +1,17 @@
+# Abandonner une coroutine suspendue libère ses ressources, tout de suite
+# La ressource est prise au démarrage. Abandonner la coroutine pendant une
+# suspension doit détruire ses variables encore vivantes, et donc libérer la
+# ressource, sans exécuter le reste du corps (pas de « yield 2 »).
+# La tâche reprise après le drop vérifie que la libération a lieu au moment du
+# drop, et pas plus tard (par exemple à la fin du programme).
+
+> new ressource as r
+> new tache apres 1 as t
+> resume r
+< print debut
+< yield 1
+> drop r
+< print liberation
+> resume t
+< print apres etape 1
+< yield 1

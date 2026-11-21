@@ -1,0 +1,14 @@
+# En fin normale, la ressource est libérée une seule fois
+# La ressource est libérée à la fin du corps, avant l'événement return.
+# Abandonner ensuite la coroutine terminée ne doit pas la libérer une seconde fois.
+
+> new ressource as r
+> resume r
+< print debut
+< yield 1
+> resume r
+< yield 2
+> resume r
+< print liberation
+< return
+> drop r

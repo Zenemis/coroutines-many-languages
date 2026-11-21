@@ -1,0 +1,13 @@
+# Reprendre une coroutine terminée panique, à chaque fois
+# Comme std::ops::Coroutine : une fois le return atteint, toute reprise
+# panique. La coroutine ne doit ni repartir du début, ni rejouer sa fin.
+# Le second resume vérifie que le panic se répète.
+
+> new feu 0 as f
+> resume f
+< print allumage
+< return eteint
+> resume f
+< panic
+> resume f
+< panic

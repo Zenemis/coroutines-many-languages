@@ -1,0 +1,10 @@
+# Un état local construit à partir des valeurs reçues survit aux suspensions
+# L'accumulateur part de la première valeur, puis ajoute chaque valeur reçue.
+
+> new accumulateur as a
+> resume a 10
+< yield 10
+> resume a 5
+< yield 15
+> resume a -3
+< yield 12

@@ -1,0 +1,7 @@
+# La première valeur peut terminer la coroutine immédiatement
+# Si la toute première valeur est « stop », l'echo se termine sans jamais se
+# suspendre : la première valeur est bien vue par le corps avant tout yield.
+
+> new echo as e
+> resume e stop
+< return fini

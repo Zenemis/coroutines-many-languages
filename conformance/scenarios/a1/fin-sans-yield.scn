@@ -1,0 +1,8 @@
+# Une coroutine peut se terminer sans jamais se suspendre
+# Un feu de zéro cycle s'allume et s'éteint dès la première reprise :
+# on doit voir son effet puis directement la valeur finale, sans aucun yield.
+
+> new feu 0 as f
+> resume f
+< print allumage
+< return eteint

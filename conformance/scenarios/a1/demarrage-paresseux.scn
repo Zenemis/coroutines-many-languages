@@ -1,0 +1,13 @@
+# Créer une coroutine n'exécute rien
+# On crée deux tâches, mais on ne reprend que la seconde. Seule sa première
+# étape doit apparaître : si la création démarrait le corps, on verrait aussi
+# « a etape 1 » ici. On reprend ensuite la première, qui démarre à son tour.
+
+> new tache a 2 as a
+> new tache b 2 as b
+> resume b
+< print b etape 1
+< yield 1
+> resume a
+< print a etape 1
+< yield 1

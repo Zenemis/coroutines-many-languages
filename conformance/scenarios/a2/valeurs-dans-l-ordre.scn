@@ -1,0 +1,11 @@
+# Chaque valeur envoyée arrive, dans l'ordre
+# Chaque resume envoie une valeur qui devient le résultat du yield en attente.
+# Un décalage (valeur perdue ou reçue une reprise trop tard) se verrait ici.
+
+> new echo as e
+> resume e un
+< yield un
+> resume e deux
+< yield deux
+> resume e trois
+< yield trois

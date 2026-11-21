@@ -1,0 +1,7 @@
+# La valeur du premier resume n'est pas perdue
+# Comme std::ops::Coroutine : le corps reçoit la première valeur comme
+# paramètre de départ. En Python, au contraire, le premier send doit valoir None.
+
+> new echo as e
+> resume e bonjour
+< yield bonjour

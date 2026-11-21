@@ -1,0 +1,15 @@
+# Deux accumulateurs ont chacun leur propre total
+# Les valeurs envoyées à l'un ne doivent jamais apparaître dans l'autre.
+
+> new accumulateur as a
+> new accumulateur as b
+> resume a 1
+< yield 1
+> resume b 100
+< yield 100
+> resume a 1
+< yield 2
+> resume b 100
+< yield 200
+> resume a 1
+< yield 3

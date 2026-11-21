@@ -1,0 +1,25 @@
+# Deux instances du même corps sont indépendantes
+# C'est la limite de la version « static » en C. Deux feux avancent à des
+# rythmes différents : chacun doit garder sa propre position. La fin de l'un
+# ne doit pas terminer l'autre.
+
+> new feu 1 as x
+> new feu 1 as y
+> resume x
+< print allumage
+< yield vert
+> resume x
+< yield orange
+> resume y
+< print allumage
+< yield vert
+> resume x
+< yield rouge
+> resume x
+< return eteint
+> resume y
+< yield orange
+> resume x
+< panic
+> resume y
+< yield rouge

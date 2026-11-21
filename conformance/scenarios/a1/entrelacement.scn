@@ -1,0 +1,29 @@
+# Deux tâches s'entrelacent : le cuisinier et le serveur
+# L'appelant joue le rôle de l'ordonnanceur et reprend les deux tâches à tour
+# de rôle. Chacune doit reprendre exactement où elle en était, sans être
+# perturbée par l'autre.
+
+> new tache cuisinier 3 as c
+> new tache serveur 3 as s
+> resume c
+< print cuisinier etape 1
+< yield 1
+> resume s
+< print serveur etape 1
+< yield 1
+> resume c
+< print cuisinier etape 2
+< yield 2
+> resume s
+< print serveur etape 2
+< yield 2
+> resume c
+< print cuisinier etape 3
+< yield 3
+> resume s
+< print serveur etape 3
+< yield 3
+> resume c
+< return
+> resume s
+< return

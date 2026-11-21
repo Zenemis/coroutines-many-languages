@@ -1,3 +1,9 @@
 {
-  "adapters": {}
+  "adapters": {
+    "reference-python": {
+      "cwd": "conformance/reference",
+      "command": ["python3", "adapter.py"],
+      "features": ["a1", "a2"]
+    }
+  }
 }

@@ -1,0 +1,10 @@
+# Un feu abandonné n'existe plus
+# Après un drop, le nom n'est plus valide : le reprendre est une erreur du protocole.
+
+> new feu 1 as f
+> resume f
+< print allumage
+< yield vert
+> drop f
+> resume f
+< error unknown f

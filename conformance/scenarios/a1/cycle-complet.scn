@@ -1,0 +1,15 @@
+# Un feu fait un cycle complet puis s'éteint
+# On crée un feu d'un seul cycle. Chaque reprise doit produire la couleur suivante,
+# le « print allumage » doit sortir avant la première couleur, et la quatrième
+# reprise doit terminer la coroutine avec sa valeur finale.
+
+> new feu 1 as f
+> resume f
+< print allumage
+< yield vert
+> resume f
+< yield orange
+> resume f
+< yield rouge
+> resume f
+< return eteint

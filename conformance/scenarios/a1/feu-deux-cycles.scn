@@ -1,0 +1,21 @@
+# Le compteur de boucle survit aux suspensions
+# Un feu de deux cycles doit enchaîner deux fois vert, orange, rouge, puis s'éteindre.
+# Si l'état local (le compteur de tours) était perdu ou remis à zéro à chaque
+# reprise, le feu s'éteindrait trop tôt ou ne s'éteindrait jamais.
+
+> new feu 2 as f
+> resume f
+< print allumage
+< yield vert
+> resume f
+< yield orange
+> resume f
+< yield rouge
+> resume f
+< yield vert
+> resume f
+< yield orange
+> resume f
+< yield rouge
+> resume f
+< return eteint
