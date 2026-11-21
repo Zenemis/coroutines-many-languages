@@ -48,7 +48,21 @@ On avance du plus simple au plus riche :
 - Le système de types peut-il rendre impossible, et pas seulement fautif, le fait de reprendre une coroutine terminée ? Et faut-il le vouloir ?
 - En A3, qui est responsable de la coroutine qui reçoit la main ?
 
+## Crates
+
+| Crate | Toolchain | Contenu |
+|---|---|---|
+| [`A-machine-a-etats`](A-machine-a-etats/) (`coroutines-a`) | stable | La bibliothèque (`src/lib.rs`) et son adaptateur de conformité (`src/bin/adapter.rs`) |
+| [`oracle-std`](oracle-std/) | nightly (via `rust-toolchain.toml`) | Les corps du catalogue écrits avec `std::ops::Coroutine`, derrière le même protocole (`src/bin/adapter.rs`) |
+
+Les crates sont indépendantes, sans workspace, parce qu'un workspace imposerait la même toolchain à toutes.
+
 ## Tests
 
-- Les tests unitaires propres à Rust vivent dans chaque crate.
+- Les tests unitaires propres à Rust vivent dans chaque crate (`cargo test`).
+- Les adaptateurs sont déclarés dans [`../conformance/adapters.json`](../conformance/adapters.json) sous les noms `rust-A` et `oracle-rust-std`. Le niveau différentiel consiste à faire passer les mêmes scénarios aux deux :
+
+  ```bash
+  python3 conformance/runner/run.py --adapter rust-A --adapter oracle-rust-std
+  ```
 - Le comportement commun à tous les langages est vérifié par les tests de conformité de [`../conformance`](../conformance/).

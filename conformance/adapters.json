@@ -4,6 +4,18 @@
       "cwd": "conformance/reference",
       "command": ["python3", "adapter.py"],
       "features": ["a1", "a2"]
+    },
+    "oracle-rust-std": {
+      "cwd": "rust/oracle-std",
+      "build": ["cargo", "build", "-q", "--bin", "adapter"],
+      "command": ["target/debug/adapter"],
+      "features": ["a1", "a2"]
+    },
+    "rust-A": {
+      "cwd": "rust/A-machine-a-etats",
+      "build": ["cargo", "build", "-q", "--bin", "adapter"],
+      "command": ["target/debug/adapter"],
+      "features": ["a1"]
     }
   }
 }
